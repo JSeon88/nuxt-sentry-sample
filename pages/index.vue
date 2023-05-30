@@ -8,14 +8,15 @@ import Vue from 'vue';
 export default Vue.extend({
   name: 'IndexPage',
   async asyncData({ $sentry }) {
-    try {
-      setTimeout(() => {
-        throw new Error('에러 발생...!!');
-      }, 1000);
-    } catch (error) {
-      console.log(error);
-      $sentry.captureException(error);
-    }
+    console.log(process.env.TEST_ENV);
+    // try {
+    //   setTimeout(() => {
+    //     throw new Error('에러 발생...!!');
+    //   }, 1000);
+    // } catch (error) {
+    //   console.log(error);
+    //   $sentry.captureException(error);
+    // }
   },
 });
 </script>

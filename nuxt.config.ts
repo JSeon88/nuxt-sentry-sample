@@ -1,3 +1,6 @@
+import { getRunTypeConfig } from './package/config/run-type';
+
+const RUN_TYPE = process.env.RUN_TYPE || 'live';
 export default {
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
@@ -16,7 +19,10 @@ export default {
 
   // Global CSS: https://go.nuxtjs.dev/config-css
   css: [],
-
+  // 환경 변수 설정
+  publicRuntimeConfig: getRunTypeConfig({ RUN_TYPE }),
+  // 클라이언트에도 사용하기 위해서는 다음과 같이 env에도 같은 값을 설정
+  env: getRunTypeConfig({ RUN_TYPE }),
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
   plugins: [],
 
