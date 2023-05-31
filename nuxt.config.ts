@@ -3,6 +3,7 @@ import { sentry } from './nuxt-configs';
 
 const RUN_TYPE = process.env.RUN_TYPE || 'live';
 export default {
+  ssr: false,
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
     title: 'nuxt-sentry-sample',
