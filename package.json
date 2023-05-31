@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "serve:dev": "cross-env RUN_TYPE=dev nuxt",
+    "serve:dev:sentry": "cross-env RUN_TYPE=dev SENTRY=on nuxt",
     "serve:live": "cross-env RUN_TYPE=live nuxt",
     "build:dev": "cross-env RUN_TYPE=dev nuxt build",
     "build:live": "cross-env RUN_TYPE=live nuxt build",

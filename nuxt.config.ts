@@ -1,4 +1,5 @@
 import { getRunTypeConfig } from './package/config/run-type';
+import { sentry } from './nuxt-configs';
 
 const RUN_TYPE = process.env.RUN_TYPE || 'live';
 export default {
@@ -37,9 +38,7 @@ export default {
 
   // Modules: https://go.nuxtjs.dev/config-modules
   modules: ['@nuxtjs/sentry'],
-  sentry: {
-    dsn: '',
-  },
+  sentry,
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {},
 };
