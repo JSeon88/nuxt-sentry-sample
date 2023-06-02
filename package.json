@@ -7,7 +7,7 @@
     "serve:dev:sentry": "cross-env RUN_TYPE=dev SENTRY=on nuxt",
     "serve:live": "cross-env RUN_TYPE=live nuxt",
     "build:dev": "cross-env RUN_TYPE=dev nuxt build",
-    "build:dev:sentry": "cross-env RUN_TYPE=dev SENTRY=on nuxt build",
+    "build:dev:sentry": "cross-env RUN_TYPE=dev SENTRY=on nuxt build && npm run clear:sourcemap",
     "build:live": "cross-env RUN_TYPE=live nuxt build",
     "start": "nuxt start",
     "generate": "nuxt generate",
@@ -15,7 +15,8 @@
     "lint:prettier": "prettier --check .",
     "lint": "npm run lint:js && npm run lint:prettier",
     "lintfix": "prettier --write --list-different . && npm run lint:js -- --fix",
-    "test": "jest"
+    "test": "jest",
+    "clear:sourcemap": "node ./scripts/postbuild.js"
   },
   "dependencies": {
     "@nuxtjs/sentry": "^7.3.0",
@@ -41,6 +42,7 @@
     "eslint-plugin-jest": "^27.0.4",
     "eslint-plugin-nuxt": "^4.0.0",
     "eslint-plugin-vue": "^9.5.1",
+    "fast-glob": "^3.2.12",
     "jest": "^29.1.2",
     "jest-environment-jsdom": "^29.1.2",
     "prettier": "^2.7.1",
