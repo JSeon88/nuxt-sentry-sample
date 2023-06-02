@@ -26,7 +26,7 @@ export default {
   // 클라이언트에도 사용하기 위해서는 다음과 같이 env에도 같은 값을 설정
   env: getRunTypeConfig({ RUN_TYPE }),
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
-  plugins: [],
+  plugins: ['./nuxt-configs/test-plugin.ts'],
 
   // Auto import components: https://go.nuxtjs.dev/config-components
   components: true,

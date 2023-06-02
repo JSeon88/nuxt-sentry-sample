@@ -12,9 +12,6 @@ const sentryConfig: ModuleOptions =
           project: 'nuxt-sample',
           include: ['./dist'],
           ignore: ['node_modules'],
-        },
-        sourceMapStyle: 'source-map',
-        config: {
           release: (() => {
             try {
               return execSync('git describe --abbrev=0 --tags')
@@ -25,6 +22,7 @@ const sentryConfig: ModuleOptions =
             }
           })(),
         },
+        sourceMapStyle: 'source-map',
       }
     : {};
 export const sentry = sentryConfig;

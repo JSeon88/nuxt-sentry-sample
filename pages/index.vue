@@ -7,7 +7,7 @@ import Vue from 'vue';
 
 export default Vue.extend({
   name: 'IndexPage',
-  async asyncData({ $sentry }) {
+  asyncData({ $sentry }) {
     // console.log(process.env.TEST_ENV);
     try {
       throw new Error('에러 발생...!!');
