@@ -8,28 +8,30 @@ const sentryConfig: ModuleOptions =
   SENTRY_STATUS === 'on'
     ? {
         dsn: '',
+        publishRelease: {
+          authToken: '', //
+          org: '', //
+          project: 'javascript-vue8',
+          include: './dist',
+          ignore: ['node_modules'],
+        },
+        disableClientRelease: !isRunNuxtBuild,
+        config: {
+          release: '',
+        },
         sourceMapStyle: 'source-map',
-        disabled: true,
-        config: {},
       }
     : {};
 
 if (SENTRY_STATUS && isRunNuxtBuild) {
-  console.log('들어오냐?');
-  sentryConfig.publishRelease = {
-    authToken: '',
-    org: '',
-    project: 'javascript-vue6',
-    include: ['./dist'],
-    ignore: ['node_modules'],
-    release: (() => {
+  if (sentryConfig.config) {
+    sentryConfig.config.release = (() => {
       try {
         return execSync('git describe --abbrev=0 --tags').toString().trim();
       } catch (e) {
-        return `nuxt-sample4-${new Date().toISOString()}`;
+        return `javascript-vue8-${new Date().toISOString()}`;
       }
-    })(),
-  };
+    })();
+  }
 }
-console.log('config ==>>>', sentryConfig);
 export const sentry = sentryConfig;
