@@ -1,69 +1,225 @@
-# nuxt-sentry-sample
+# Nuxt + Sentry
 
-## Build Setup
+## nuxt/sentry 공식 사이트
 
-```bash
-# install dependencies
-$ npm install
+- https://sentry.nuxtjs.org/getting-started/setup
 
-# serve with hot reload at localhost:3000
-$ npm run dev
+## 설치
 
-# build for production and launch server
-$ npm run build
-$ npm run start
+- npm을 통한 설치
+  ```
+  npm install @nuxtjs/sentry
+  ```
+- nuxt.config.js
+  ```js
+  {
+    modules: [
+      '@nuxtjs/sentry'
+    ],
+    sentry: {
+      dsn: '', // Enter your project's DSN.
+      // Additional module options go here.
+    }
+  }
+  ```
+- Types : tsconfig.json
+  ```json
+  {
+    "compilerOptions": {
+      // ...
+      "types": ["@nuxtjs/sentry"]
+    }
+  }
+  ```
 
-# generate static project
-$ npm run generate
+## dsn 발급
+
+- [sentry](https://sentry.io/) 가입
+  - 해당 플랫폼 선택
+    - nuxt가 따로 없기 때문에 vue로 선택
+  - dsn 값 확인
+    - Settings → Projects -> 해당 프로젝트 선택
+    - SDK SETUP → Client Keys(DSN)
+  - dsn이 발급되면 nuxt.config.js에 설정 추가
+
+## 테스트 코드
+
+- pages/index.vue
+
+```js
+  async asyncData({ params, $sentry }) {
+    try {
+      setTimeout(() => {
+        throw new Error('에러 발생...!!');
+      }, 1000)
+    } catch (error) {
+      $sentry.captureException(error);
+    }
+  },
 ```
 
-For detailed explanation on how things work, check out the [documentation](https://nuxtjs.org).
+## Release 설정
 
-## Special Directories
+### 참고
 
-You can create the following extra directories, some of which have special behaviors. Only `pages` is required; you can delete them if you don't want to use their functionality.
+- https://sentry.nuxtjs.org/configuration/options/#publishrelease
+- https://docs.sentry.io/product/releases/
 
-### `assets`
+### npm package 설치
 
-The assets directory contains your uncompiled assets such as Stylus or Sass files, images, or fonts.
+```
+npm i -D @sentry/webpack-plugin@1.20.0
+```
 
-More information about the usage of this directory in [the documentation](https://nuxtjs.org/docs/2.x/directory-structure/assets).
+- sentry 버전 7.3.0
+  - webpack-plugin 버전 이슈(2.2.0) 있음
+  - 1.20.0 버전으로 다운
 
-### `components`
+### dist 폴더 output으로 설정
 
-The components directory contains your Vue.js components. Components make up the different parts of your page and can be reused and imported into your pages, layouts and even other components.
+- nuxt.config.ts
 
-More information about the usage of this directory in [the documentation](https://nuxtjs.org/docs/2.x/directory-structure/components).
+```js
+export default {
+  ssr: false,
+  // ...
+};
+```
 
-### `layouts`
+### publishRelease 속성 추가
 
-Layouts are a great help when you want to change the look and feel of your Nuxt app, whether you want to include a sidebar or have distinct layouts for mobile and desktop.
+- nuxt-configs/sentry.ts
 
-More information about the usage of this directory in [the documentation](https://nuxtjs.org/docs/2.x/directory-structure/layouts).
+```js
+import type { ModuleOptions } from "@nuxtjs/sentry";
+const { execSync } = require("child_process");
+const isRunNuxtBuild = process.env.npm_lifecycle_script.includes('nuxt build');
+const SENTRY_STATUS = process.env.SENTRY || "off";
 
-### `pages`
+const sentryConfig: ModuleOptions =
+  SENTRY_STATUS === "on"
+    ? {
+        dsn: "",
+        publishRelease: {
+          authToken: "",
+          org: "",
+          project: "nuxt-sample",
+          include: ["./dist"],
+          ignore: ["node_modules"],
+          disableClientRelease: !isRunNuxtBuild,
+          config: {
+              release: ''
+          },
+        sourceMapStyle: "source-map",
+      }
+    : {};
 
-This directory contains your application views and routes. Nuxt will read all the `*.vue` files inside this directory and setup Vue Router automatically.
+  if (SENTRY_STATUS && isRunNuxtBuild) {
+    if (sentryConfig.config) {
+      sentryConfig.config.release = (() => {
+        try {
+          return execSync('git describe --abbrev=0 --tags').toString().trim();
+        } catch (e) {
+          return `javascript-vue8-${new Date().toISOString()}`;
+        }
+      })();
+    }
+  }
+export const sentry = sentryConfig;
+```
 
-More information about the usage of this directory in [the documentation](https://nuxtjs.org/docs/2.x/get-started/routing).
+- publishRelease
+  - authToken
+    - 토큰 정보 입력
+  - org
+    - 조직 이름 입력
+  - project
+    - 프로젝트 이름 입력
+  - include
+    - 빌드 시 생성되는 폴더 경로 입력
+  - ignore
+    - 노드 모듈스 입력
+  - release
+    - default 설정 원할 시 => release : ''
+    - 커밋 ID
+    - nuxt dev 모드일 경우
+      - 이슈는 등록하되 릴리즈에 등록하지 원하지 않을 경우
+        - disableClientRelease : true && config : { release: ''}
+- sourceMapStyle
+  - Sentry에 릴리스를 게시할 때 생성되는 소스 맵 타입
 
-### `plugins`
+* nuxt.config.ts
 
-The plugins directory contains JavaScript plugins that you want to run before instantiating the root Vue.js Application. This is the place to add Vue plugins and to inject functions or constants. Every time you need to use `Vue.use()`, you should create a file in `plugins/` and add its path to plugins in `nuxt.config.js`.
+```js
+import { sentry } from './nuxt-configs';
 
-More information about the usage of this directory in [the documentation](https://nuxtjs.org/docs/2.x/directory-structure/plugins).
+export default {
+  // ...
+  sentry,
+};
+```
 
-### `static`
+### 토큰
 
-This directory contains your static files. Each file inside this directory is mapped to `/`.
+- Setting -> Auth Tokens -> Create New Token
 
-Example: `/static/robots.txt` is mapped as `/robots.txt`.
+### 테스트
 
-More information about the usage of this directory in [the documentation](https://nuxtjs.org/docs/2.x/directory-structure/static).
+- package.json
+  ```json
+  "build:dev:sentry": "cross-env RUN_TYPE=dev SENTRY=on nuxt build",
+  ```
+- <img src='./assets/images/release_uploading.png' />
+- <img src='./assets/images/sentry_release.png'/>
 
-### `store`
+### sourcemap 삭제
 
-This directory contains your Vuex store files. Creating a file in this directory automatically activates Vuex.
+- fast-glob 설치
 
-More information about the usage of this directory in [the documentation](https://nuxtjs.org/docs/2.x/directory-structure/store).
-# nuxt-sentry-sample
+  ```
+  npm i -D fast-glob
+  ```
+
+- 스크립트 파일 생성
+
+  - scripts/postbuild.js
+
+    ```js
+    const fs = require('fs');
+    const fastGlob = require('fast-glob');
+
+    // Delete sourcemaps
+    const mapFiles = fastGlob.sync('./dist/**/*.js.map');
+    mapFiles.forEach((filePath) => {
+      try {
+        fs.unlinkSync(filePath);
+      } catch (err) {
+        console.error('Fail Delete sourcemaps', err);
+      }
+    });
+
+    // Delete sourcemaps refs
+    const jsFiles = fastGlob.sync('./dist/**/*.js');
+    jsFiles.forEach((filePath) => {
+      try {
+        const fileContent = fs.readFileSync(filePath, 'utf8');
+        fs.writeFileSync(
+          filePath,
+          fileContent.replace(/\/\/# sourceMappingURL=\S+/g, '')
+        );
+      } catch (err) {
+        console.error('Fail Delete sourcemaps refs', err);
+      }
+    });
+    ```
+
+- package.json
+  ```json
+  {
+    "scripts": {
+      // ...
+      "build:dev:sentry": "cross-env RUN_TYPE=dev SENTRY=on nuxt build && npm run clear:sourcemap",
+      "clear:sourcemap": "node ./scripts/postbuild.js"
+    }
+  }
+  ```
